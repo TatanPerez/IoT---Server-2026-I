@@ -5,7 +5,7 @@ import random  # Para generar valores aleatorios
 
 mqtt_host = "thingsboard"  # desde contenedor: "thingsboard"; desde WSL: "localhost"
 mqtt_port = 1883           # dentro de Docker; desde WSL usa puerto expuesto (ej. 1884)
-access_token = "13MNmj08XRXFhJmJuk1q"
+access_token = "MztEVRLecxb6ENFd0xaQ"
 
 client = mqtt.Client()
 client.username_pw_set(access_token)
