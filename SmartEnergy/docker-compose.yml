@@ -1,47 +1,48 @@
 services:
   postgres:
-    image: postgres:13
-    container_name: tb-postgres
-    environment:
-      POSTGRES_USER: tb
-      POSTGRES_PASSWORD: tb
-      POSTGRES_DB: thingsboard
+    image: postgres:13   # Usa la imagen oficial de PostgreSQL versión 13
+    container_name: tb-postgres  # Nombre fijo del contenedor
+    environment:  # Variables de entorno para inicializar PostgreSQL
+      POSTGRES_USER: tb        # Usuario que se creará
+      POSTGRES_PASSWORD: tb    # Contraseña del usuario
+      POSTGRES_DB: thingsboard # Base de datos que se creará al iniciar
     ports:
-      - "5432:5432"
+      - "5432:5432"  # Mapea el puerto 5432 del contenedor al mismo en tu máquina
     volumes:
-      - ./tb-postgres-data:/var/lib/postgresql/data
-    restart: always
+      - ./tb-postgres-data:/var/lib/postgresql/data  # Persiste los datos de PostgreSQL en tu máquina
+    restart: always  # Reinicia automáticamente si el contenedor falla o la máquina se reinicia
 
   thingsboard:
-    image: thingsboard/tb-postgres:3.5.1
-    container_name: thingsboard
+    image: thingsboard/tb-postgres:3.5.1  # Imagen oficial de ThingsBoard preparada para PostgreSQL
+    container_name: thingsboard  # Nombre fijo del contenedor
     depends_on:
-      - postgres
-    environment:
-      TB_DB_HOST: postgres
-      TB_DB_PORT: 5432
-      TB_DB_NAME: thingsboard
-      TB_DB_USERNAME: tb
-      TB_DB_PASSWORD: tb
-      TB_QUEUE_TYPE: in-memory
+      - postgres  # Arranca después del contenedor postgres (solo espera que el contenedor esté activo, no garantiza que la DB esté lista)
+    environment:  # Variables de configuración de ThingsBoard
+      TB_DB_HOST: postgres      # Host de la base de datos (el nombre del contenedor PostgreSQL)
+      TB_DB_PORT: 5432          # Puerto de PostgreSQL
+      TB_DB_NAME: thingsboard   # Base de datos a usar
+      TB_DB_USERNAME: tb        # Usuario para conectarse a la DB
+      TB_DB_PASSWORD: tb        # Contraseña del usuario
+      TB_QUEUE_TYPE: in-memory  # Tipo de cola interna (memoria, no persistente)
     ports:
-      - "8080:9090"
-      - "1884:1883"
-      - "5683:5683/udp"
-    restart: always
+      - "8080:9090"    # Puerto web para acceder al panel de ThingsBoard desde el navegador
+      - "1884:1883"    # Puerto MQTT TCP
+      - "5683:5683/udp"  # Puerto CoAP UDP
+    restart: always   # Reinicia automáticamente en caso de fallo
     volumes:
-      - ./tb-data:/thingsboard/data
-
+      - ./tb-data:/thingsboard/data  # Persiste los datos de ThingsBoard en tu máquina
+      
   python-simulator:
-    #image: python:3.11-slim
-    build: ./DatosPrueba  # Construye la imagen desde el Dockerfile
-    container_name: python-simulator
+    #image: python:3.11-slim  # Comentado, usamos build en su lugar
+    build: ./DatosPrueba  # Construye la imagen desde el Dockerfile dentro de ./DatosPrueba
+    container_name: python-simulator  # Nombre fijo del contenedor
     depends_on:
-      - thingsboard
-    working_dir: /app
+      - thingsboard  # Arranca después de ThingsBoard
+    working_dir: /app  # Directorio de trabajo dentro del contenedor
     volumes:
-      - ./DatosPrueba:/app
-    command: python simulator.py
-    restart: always
+      - ./DatosPrueba:/app  # Mapea la carpeta local con el código dentro del contenedor
+    command: python simulator.py  # Comando que se ejecuta al iniciar el contenedor
+    restart: always  # Reinicia automáticamente si falla
+
 #volumes:
   # Los datos de Postgres ya están mapeados a ./tb-postgres-data
