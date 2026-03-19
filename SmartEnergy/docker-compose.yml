@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:13
+    container_name: tb-postgres
+    environment:
+      POSTGRES_USER: tb
+      POSTGRES_PASSWORD: tb
+      POSTGRES_DB: thingsboard
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./tb-postgres-data:/var/lib/postgresql/data
+    restart: always
+
+  thingsboard:
+    image: thingsboard/tb-postgres:3.5.1
+    container_name: thingsboard
+    depends_on:
+      - postgres
+    environment:
+      TB_DB_HOST: postgres
+      TB_DB_PORT: 5432
+      TB_DB_NAME: thingsboard
+      TB_DB_USERNAME: tb
+      TB_DB_PASSWORD: tb
+      TB_QUEUE_TYPE: in-memory
+    ports:
+      - "8080:9090"
+      - "1884:1883"
+      - "5683:5683/udp"
+    restart: always
+    volumes:
+      - ./tb-data:/thingsboard/data
+
+  python-simulator:
+    #image: python:3.11-slim
+    build: ./DatosPrueba  # Construye la imagen desde el Dockerfile
+    container_name: python-simulator
+    depends_on:
+      - thingsboard
+    working_dir: /app
+    volumes:
+      - ./DatosPrueba:/app
+    command: python simulator.py
+    restart: always
+#volumes:
+  # Los datos de Postgres ya están mapeados a ./tb-postgres-data
